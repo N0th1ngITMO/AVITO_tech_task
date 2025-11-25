@@ -150,13 +150,13 @@ func (r *PostgresRepository) GetRandomActiveTeamMember(ctx context.Context, team
 		excludeClause = fmt.Sprintf("AND user_id NOT IN (%s)", strings.Join(placeholders, ", "))
 	}
 
-	query := fmt.Sprintf(`
-		SELECT user_id, username, team_name, is_active 
-		FROM "user" 
-		WHERE team_name = $1 AND is_active = true %s
-		ORDER BY RANDOM()
-		LIMIT 1
-	`, excludeClause)
+	query := `
+    SELECT user_id, username, team_name, is_active 
+    FROM "user" 
+    WHERE team_name = $1 AND is_active = true ` + excludeClause + `
+    ORDER BY RANDOM()
+    LIMIT 1
+`
 
 	var user models.User
 	err := r.db.QueryRowContext(ctx, query, args...).Scan(&user.UserID, &user.Username, &user.TeamName, &user.IsActive)
