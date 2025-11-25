@@ -69,9 +69,15 @@ docker-compose down
 
 ```env
 DB_NAME=pr_review_db
-DB_USER=postgres
-DB_PASSWORD=your_secure_password
-SERVER_PORT=8080
+DB_USER=pr_user
+DB_PASSWORD=secure_password_123
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=pr_user
+DB_PASSWORD=secure_password_123
+DB_NAME=pr_review_db
+DB_SSLMODE=disable
 ```
 
 ##  API Endpoints
@@ -108,16 +114,21 @@ Content-Type: application/json
 ```
 ├── cmd/main.go          # Точка входа
 ├── internal/
+|   ├── config/              # Config базы данных
+|   ├── error/               # Ошибки
 │   ├── handler/             # HTTP хендлеры
 │   ├── service/             # Бизнес-логика
 │   ├── repository/          # Работа с базой данных
 │   ├── model/               # Модели данных
 │   └── dto/                 # Data Transfer Objects
+├── tests/
+|   └── integration/         # Интеграционные тесты
 ├── docker-compose.yml       # Конфигурация Docker
 ├── Dockerfile              # Сборка приложения
 ├── Makefile               # Команды управления
 └── init/                  # Скрипты инициализации БД
     └── init.sql
+├── docs/                  # Сгенерированная документация Swagger
 ```
 
 ## База данных
@@ -126,6 +137,7 @@ Content-Type: application/json
 
 - **users** - таблица пользователей
 - **pull_requests** - таблица pull request'ов
+- **team** - таблица команд
 
 ## Разработка
 
