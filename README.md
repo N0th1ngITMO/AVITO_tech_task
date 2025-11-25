@@ -30,7 +30,6 @@ docker-compose down
 |---------|-------------|
 | `make build` | Собрать Docker образ приложения |
 | `make run` | Запустить все сервисы в фоне |
-| `make run-dev` | Запустить сервисы с выводом логов |
 | `make stop` | Остановить все сервисы |
 | `make restart` | Перезапустить все сервисы |
 | `make clean` | Остановить сервисы и очистить Docker |
@@ -59,9 +58,9 @@ docker-compose down
 
 После запуска сервисы доступны по адресам:
 
-- **REST API**: http://localhost:8081
+- **REST API**: http://localhost:8080
 - **База данных**: localhost:5432
-- **Swagger документация**: http://localhost:8081/swagger/index.html
+- **Swagger документация**: http://localhost:8080/swagger/index.html
 
 ##  Настройка окружения
 
@@ -93,19 +92,115 @@ Content-Type: application/json
 }
 ```
 
-### Получить всех пользователей
-```http
-GET /users
-```
-
 ### Создать PR
 ```http
-POST /pr
+POST /pullRequest/create
 Content-Type: application/json
 
 {
-  "author_id": "user123",
-  "title": "New feature implementation"
+  "author_id": "userId",
+  "pull_request_id": "pullRequestId",
+  "pull_request_name": "string"
+}
+```
+
+### Merge PR
+```http
+POST /pullRequest/merge
+Content-Type: application/json
+
+{
+  "pull_request_id": "pullRequestId"
+}
+```
+
+### Переназначить конкретного ревьювера
+```http
+POST /pullRequest/reassign
+Content-Type: application/json
+
+{
+  "old_reviewer_id": "oldReviewerId",
+  "pull_request_id": "pullRequestId"
+}
+```
+
+### Получить статистику по PR
+```http
+GET /stats/prs
+```
+
+### Получить общеую стистику
+```http
+GET /stats/overall
+```
+
+###  Получить статистику по ревьюверам
+```http
+GET /stats/users
+```
+
+### Создать команду с участниками
+```http
+POST /team/add
+Content-Type: application/json
+
+{
+  "team_name": "strongers",
+  "members": [
+    {
+      "user_id": "u6",
+      "username": "Alice",
+      "is_active": true
+    },
+    {
+      "user_id": "u7",
+      "username": "Bob",
+      "is_active": true
+    },
+    {
+      "user_id": "u8",
+      "username": "Bob",
+      "is_active": true
+    },
+    {
+      "user_id": "u9",
+      "username": "Bob",
+      "is_active": true
+    }
+  ]
+}
+```
+
+###  Получить комаду с участниками
+```http
+GET /team/get
+```
+
+###  Получить PR, где пользователь назначен ревьювером
+```http
+GET /users/getReview
+```
+
+### Массовая деактивация пользователей команды
+```http
+POST /users/massDeactivate
+Content-Type: application/json
+
+{
+  "exclude_user_ids": ["u8"],
+  "team_name": "backend"
+}
+```
+
+### Установить флаг активности пользователя
+```http
+POST /users/setIsActive
+Content-Type: application/json
+
+{
+  "is_active": true,
+  "user_id": "userId"
 }
 ```
 
@@ -140,14 +235,6 @@ Content-Type: application/json
 - **team** - таблица команд
 
 ## Разработка
-
-### Локальная разработка
-
-```bash
-make dev          # Запуск в режиме разработки
-make test         # Запуск тестов
-make restart      # Перезапуск после изменений
-```
 
 **Примечание**: Для работы Make на Windows установите [Chocolatey](https://chocolatey.org/) и выполните:
 ```powershell
