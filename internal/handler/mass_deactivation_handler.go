@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"pr_task/internal/dto"
 	errors "pr_task/internal/error"
 
 	"github.com/labstack/echo/v4"
@@ -20,7 +21,7 @@ import (
 // @Failure 500 {object} errors.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /users/massDeactivate [post]
 func (h *Handler) MassDeactivateTeamUsers(c echo.Context) error {
-	var req MassDeactivationRequest
+	var req dto.MassDeactivationRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, errors.NewErrorResponse("INVALID_REQUEST", "Invalid request body"))
 	}
@@ -35,16 +36,4 @@ func (h *Handler) MassDeactivateTeamUsers(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, result)
-}
-
-type MassDeactivationRequest struct {
-	TeamName       string   `json:"team_name" example:"backend"`
-	ExcludeUserIDs []string `json:"exclude_user_ids,omitempty" example:"u1,u2"`
-}
-
-type MassDeactivationResponse struct {
-	DeactivatedUsers int      `json:"deactivated_users" example:"5"`
-	UpdatedPRs       int      `json:"updated_prs" example:"3"`
-	FailedPRs        []string `json:"failed_prs,omitempty" example:"pr-1001"`
-	ProcessingTime   int64    `json:"processing_time_ms" example:"85"`
 }

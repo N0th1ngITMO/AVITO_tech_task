@@ -3,18 +3,12 @@ package services
 import (
 	"context"
 	"fmt"
-	"pr_task/internal/repository"
+	"pr_task/internal/dto"
+	models "pr_task/internal/model"
 	"time"
 )
 
-type MassDeactivationResponse struct {
-	DeactivatedUsers int      `json:"deactivated_users" example:"5"`
-	UpdatedPRs       int      `json:"updated_prs" example:"3"`
-	FailedPRs        []string `json:"failed_prs,omitempty" example:"pr-1001"`
-	ProcessingTime   int64    `json:"processing_time_ms" example:"85"`
-}
-
-func (s *ServiceImpl) MassDeactivateTeamUsers(ctx context.Context, teamName string, excludeUserIDs []string) (*MassDeactivationResponse, error) {
+func (s *ServiceImpl) MassDeactivateTeamUsers(ctx context.Context, teamName string, excludeUserIDs []string) (*dto.MassDeactivationResponse, error) {
 	startTime := time.Now()
 
 	_, err := s.repo.GetTeam(ctx, teamName)
@@ -28,7 +22,7 @@ func (s *ServiceImpl) MassDeactivateTeamUsers(ctx context.Context, teamName stri
 	}
 
 	if deactivatedCount == 0 {
-		return &MassDeactivationResponse{
+		return &dto.MassDeactivationResponse{
 			DeactivatedUsers: 0,
 			UpdatedPRs:       0,
 			FailedPRs:        []string{},
@@ -38,7 +32,7 @@ func (s *ServiceImpl) MassDeactivateTeamUsers(ctx context.Context, teamName stri
 
 	openPRs, err := s.repo.GetOpenPRsWithReviewers(ctx, teamName)
 	if err != nil {
-		return &MassDeactivationResponse{
+		return &dto.MassDeactivationResponse{
 			DeactivatedUsers: deactivatedCount,
 			UpdatedPRs:       0,
 			FailedPRs:        []string{"all"},
@@ -50,7 +44,7 @@ func (s *ServiceImpl) MassDeactivateTeamUsers(ctx context.Context, teamName stri
 
 	processingTime := time.Since(startTime).Milliseconds()
 
-	return &MassDeactivationResponse{
+	return &dto.MassDeactivationResponse{
 		DeactivatedUsers: deactivatedCount,
 		UpdatedPRs:       updateResult.UpdatedPRs,
 		FailedPRs:        updateResult.FailedPRs,
@@ -58,18 +52,18 @@ func (s *ServiceImpl) MassDeactivateTeamUsers(ctx context.Context, teamName stri
 	}, nil
 }
 
-func (s *ServiceImpl) updateReviewersForOpenPRs(ctx context.Context, openPRs []repository.OpenPRInfo, excludeUserIDs []string) *repository.MassDeactivationResult {
+func (s *ServiceImpl) updateReviewersForOpenPRs(ctx context.Context, openPRs []models.OpenPRInfo, excludeUserIDs []string) *models.MassDeactivationResult {
 	if len(openPRs) == 0 {
-		return &repository.MassDeactivationResult{UpdatedPRs: 0}
+		return &models.MassDeactivationResult{UpdatedPRs: 0}
 	}
 
-	var updates []repository.PRReviewersUpdate
+	var updates []models.PRReviewersUpdate
 	var failedPRs []string
 
 	for _, pr := range openPRs {
 		newReviewers := s.getUpdatedReviewers(pr.AssignedReviewers, excludeUserIDs, pr.AuthorID)
 
-		updates = append(updates, repository.PRReviewersUpdate{
+		updates = append(updates, models.PRReviewersUpdate{
 			PRID:      pr.PRID,
 			Reviewers: newReviewers,
 		})
@@ -80,14 +74,14 @@ func (s *ServiceImpl) updateReviewersForOpenPRs(ctx context.Context, openPRs []r
 			for _, update := range updates {
 				failedPRs = append(failedPRs, update.PRID)
 			}
-			return &repository.MassDeactivationResult{
+			return &models.MassDeactivationResult{
 				UpdatedPRs: 0,
 				FailedPRs:  failedPRs,
 			}
 		}
 	}
 
-	return &repository.MassDeactivationResult{
+	return &models.MassDeactivationResult{
 		UpdatedPRs: len(updates),
 		FailedPRs:  failedPRs,
 	}

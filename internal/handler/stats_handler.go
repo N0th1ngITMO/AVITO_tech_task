@@ -13,7 +13,7 @@ import (
 // @Tags Statistics
 // @Accept json
 // @Produce json
-// @Success 200 {object} UserReviewStatsResponse "Статистика по пользователям"
+// @Success 200 {object} dto.UserReviewStatsResponse "Статистика по пользователям"
 // @Failure 500 {object} errors.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /stats/users [get]
 func (h *Handler) GetUserReviewStats(c echo.Context) error {
@@ -33,7 +33,7 @@ func (h *Handler) GetUserReviewStats(c echo.Context) error {
 // @Tags Statistics
 // @Accept json
 // @Produce json
-// @Success 200 {object} PRReviewStatsResponse "Статистика по PR"
+// @Success 200 {object} dto.PRReviewStatsResponse "Статистика по PR"
 // @Failure 500 {object} errors.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /stats/prs [get]
 func (h *Handler) GetPRReviewStats(c echo.Context) error {
@@ -53,7 +53,7 @@ func (h *Handler) GetPRReviewStats(c echo.Context) error {
 // @Tags Statistics
 // @Accept json
 // @Produce json
-// @Success 200 {object} OverallStatsResponse "Общая статистика"
+// @Success 200 {object} dto.OverallStatsResponse "Общая статистика"
 // @Failure 500 {object} errors.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /stats/overall [get]
 func (h *Handler) GetOverallStats(c echo.Context) error {
@@ -65,35 +65,4 @@ func (h *Handler) GetOverallStats(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"stats": stats,
 	})
-}
-
-type UserReviewStatsResponse struct {
-	Stats []struct {
-		UserID      string `json:"user_id" example:"u1"`
-		Username    string `json:"username" example:"Alice"`
-		TeamName    string `json:"team_name" example:"backend"`
-		ReviewCount int    `json:"review_count" example:"5"`
-	} `json:"stats"`
-}
-
-type PRReviewStatsResponse struct {
-	Stats []struct {
-		PRID          string `json:"pr_id" example:"pr-1001"`
-		PRName        string `json:"pr_name" example:"Add search feature"`
-		AuthorID      string `json:"author_id" example:"u1"`
-		Status        string `json:"status" example:"OPEN"`
-		ReviewerCount int    `json:"reviewer_count" example:"2"`
-	} `json:"stats"`
-}
-
-type OverallStatsResponse struct {
-	Stats struct {
-		TotalPRs        int     `json:"total_prs" example:"10"`
-		OpenPRs         int     `json:"open_prs" example:"7"`
-		MergedPRs       int     `json:"merged_prs" example:"3"`
-		TotalUsers      int     `json:"total_users" example:"15"`
-		ActiveUsers     int     `json:"active_users" example:"12"`
-		TotalReviews    int     `json:"total_reviews" example:"20"`
-		AvgReviewsPerPR float64 `json:"avg_reviews_per_pr" example:"2.0"`
-	} `json:"stats"`
 }

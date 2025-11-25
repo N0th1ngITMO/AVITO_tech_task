@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"math/rand"
+	"pr_task/internal/dto"
 	"time"
 
 	"pr_task/internal/error"
@@ -68,7 +69,7 @@ func (s *ServiceImpl) SetUserActive(ctx context.Context, userID string, isActive
 	return user, nil
 }
 
-func (s *ServiceImpl) GetUserReviewPRs(ctx context.Context, userID string) (*models.UserReviewResponse, error) {
+func (s *ServiceImpl) GetUserReviewPRs(ctx context.Context, userID string) (*dto.UserReviewResponse, error) {
 	if _, err := s.repo.GetUser(ctx, userID); err != nil {
 		if err.Error() == "user not found" {
 			return nil, errors.ErrNotFound
@@ -81,9 +82,9 @@ func (s *ServiceImpl) GetUserReviewPRs(ctx context.Context, userID string) (*mod
 		return nil, err
 	}
 
-	var shortPRs []models.PullRequestShort
+	var shortPRs []dto.PullRequestShort
 	for _, pr := range prs {
-		shortPRs = append(shortPRs, models.PullRequestShort{
+		shortPRs = append(shortPRs, dto.PullRequestShort{
 			PullRequestID:   pr.PullRequestID,
 			PullRequestName: pr.PullRequestName,
 			AuthorID:        pr.AuthorID,
@@ -91,13 +92,13 @@ func (s *ServiceImpl) GetUserReviewPRs(ctx context.Context, userID string) (*mod
 		})
 	}
 
-	return &models.UserReviewResponse{
+	return &dto.UserReviewResponse{
 		UserID:       userID,
 		PullRequests: shortPRs,
 	}, nil
 }
 
-func (s *ServiceImpl) CreatePullRequest(ctx context.Context, prID, name, authorID string) (*models.PullRequest, error) {
+func (s *ServiceImpl) CreatePullRequest(ctx context.Context, prID, name, authorID string) (*dto.PullRequest, error) {
 	exists, err := s.repo.PRExists(ctx, prID)
 	if err != nil {
 		return nil, err
@@ -120,7 +121,7 @@ func (s *ServiceImpl) CreatePullRequest(ctx context.Context, prID, name, authorI
 	}
 
 	now := time.Now()
-	pr := models.PullRequest{
+	pr := dto.PullRequest{
 		PullRequestID:     prID,
 		PullRequestName:   name,
 		AuthorID:          authorID,
@@ -136,7 +137,7 @@ func (s *ServiceImpl) CreatePullRequest(ctx context.Context, prID, name, authorI
 	return &pr, nil
 }
 
-func (s *ServiceImpl) MergePullRequest(ctx context.Context, prID string) (*models.PullRequest, error) {
+func (s *ServiceImpl) MergePullRequest(ctx context.Context, prID string) (*dto.PullRequest, error) {
 	pr, err := s.repo.GetPR(ctx, prID)
 	if err != nil {
 		if err.Error() == "PR not found" {
@@ -159,7 +160,7 @@ func (s *ServiceImpl) MergePullRequest(ctx context.Context, prID string) (*model
 	return pr, nil
 }
 
-func (s *ServiceImpl) ReassignReviewer(ctx context.Context, prID, oldUserID string) (*models.ReassignResponse, error) {
+func (s *ServiceImpl) ReassignReviewer(ctx context.Context, prID, oldUserID string) (*dto.ReassignResponse, error) {
 	pr, err := s.repo.GetPR(ctx, prID)
 	if err != nil {
 		if err.Error() == "PR not found" {
@@ -199,7 +200,7 @@ func (s *ServiceImpl) ReassignReviewer(ctx context.Context, prID, oldUserID stri
 	}
 
 	pr.AssignedReviewers = newReviewers
-	return &models.ReassignResponse{
+	return &dto.ReassignResponse{
 		PR:         pr,
 		ReplacedBy: newReviewer.UserID,
 	}, nil

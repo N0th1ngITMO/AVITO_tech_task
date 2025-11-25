@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	models "pr_task/internal/model"
 )
 
-func (r *PostgresRepository) GetReviewStatsByUser(ctx context.Context) ([]UserReviewStats, error) {
+func (r *PostgresRepository) GetReviewStatsByUser(ctx context.Context) ([]models.UserReviewStats, error) {
 	query := `
         SELECT 
             u.user_id,
@@ -33,9 +34,9 @@ func (r *PostgresRepository) GetReviewStatsByUser(ctx context.Context) ([]UserRe
 		}
 	}(rows)
 
-	var stats []UserReviewStats
+	var stats []models.UserReviewStats
 	for rows.Next() {
-		var stat UserReviewStats
+		var stat models.UserReviewStats
 		if err := rows.Scan(&stat.UserID, &stat.Username, &stat.TeamName, &stat.ReviewCount); err != nil {
 			return nil, err
 		}
@@ -45,7 +46,7 @@ func (r *PostgresRepository) GetReviewStatsByUser(ctx context.Context) ([]UserRe
 	return stats, nil
 }
 
-func (r *PostgresRepository) GetReviewStatsByPR(ctx context.Context) ([]PRReviewStats, error) {
+func (r *PostgresRepository) GetReviewStatsByPR(ctx context.Context) ([]models.PRReviewStats, error) {
 	query := `
 		SELECT 
 			pull_request_id,
@@ -68,9 +69,9 @@ func (r *PostgresRepository) GetReviewStatsByPR(ctx context.Context) ([]PRReview
 		}
 	}(rows)
 
-	var stats []PRReviewStats
+	var stats []models.PRReviewStats
 	for rows.Next() {
-		var stat PRReviewStats
+		var stat models.PRReviewStats
 		if err := rows.Scan(&stat.PRID, &stat.PRName, &stat.AuthorID, &stat.Status, &stat.ReviewerCount); err != nil {
 			return nil, err
 		}
@@ -80,7 +81,7 @@ func (r *PostgresRepository) GetReviewStatsByPR(ctx context.Context) ([]PRReview
 	return stats, nil
 }
 
-func (r *PostgresRepository) GetOverallStats(ctx context.Context) (*OverallStats, error) {
+func (r *PostgresRepository) GetOverallStats(ctx context.Context) (*models.OverallStats, error) {
 	query := `
 		SELECT 
 			(SELECT COUNT(*) FROM pull_request) as total_prs,
@@ -92,7 +93,7 @@ func (r *PostgresRepository) GetOverallStats(ctx context.Context) (*OverallStats
 			(SELECT AVG(COALESCE(array_length(assigned_reviewers, 1), 0)) FROM pull_request) as avg_reviews
 	`
 
-	var stats OverallStats
+	var stats models.OverallStats
 	err := r.db.QueryRowContext(ctx, query).Scan(
 		&stats.TotalPRs,
 		&stats.OpenPRs,

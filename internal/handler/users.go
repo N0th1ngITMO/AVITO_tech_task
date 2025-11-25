@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"pr_task/internal/dto"
 	errors "pr_task/internal/error"
 
 	"github.com/labstack/echo/v4"
@@ -20,10 +21,7 @@ import (
 // @Failure 500 {object} errors.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /users/setIsActive [post]
 func (h *Handler) SetUserActive(c echo.Context) error {
-	var req struct {
-		UserID   string `json:"user_id"`
-		IsActive bool   `json:"is_active"`
-	}
+	var req dto.SetUserActiveRequest
 
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, errors.NewErrorResponse("INVALID_REQUEST", "Invalid request body"))

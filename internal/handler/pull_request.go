@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"pr_task/internal/dto"
 	errors "pr_task/internal/error"
 
 	"github.com/labstack/echo/v4"
@@ -20,11 +21,7 @@ import (
 // @Failure 500 {object} errors.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /pullRequest/create [post]
 func (h *Handler) CreatePR(c echo.Context) error {
-	var req struct {
-		PullRequestID   string `json:"pull_request_id"`
-		PullRequestName string `json:"pull_request_name"`
-		AuthorID        string `json:"author_id"`
-	}
+	var req dto.CreatePullRequestRequest
 
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, errors.NewErrorResponse("INVALID_REQUEST", "Invalid request body"))
@@ -64,9 +61,7 @@ func (h *Handler) CreatePR(c echo.Context) error {
 // @Failure 500 {object} errors.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /pullRequest/merge [post]
 func (h *Handler) MergePR(c echo.Context) error {
-	var req struct {
-		PullRequestID string `json:"pull_request_id"`
-	}
+	var req dto.MergePullRequestRequest
 
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, errors.NewErrorResponse("INVALID_REQUEST", "Invalid request body"))
@@ -103,10 +98,7 @@ func (h *Handler) MergePR(c echo.Context) error {
 // @Failure 500 {object} errors.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /pullRequest/reassign [post]
 func (h *Handler) ReassignReviewer(c echo.Context) error {
-	var req struct {
-		PullRequestID string `json:"pull_request_id"`
-		OldReviewerID string `json:"old_reviewer_id"`
-	}
+	var req dto.ReassignReviewerRequest
 
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, errors.NewErrorResponse("INVALID_REQUEST", "Invalid request body"))

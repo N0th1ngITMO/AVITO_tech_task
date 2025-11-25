@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
+	models "pr_task/internal/model"
 )
 
 func (r *PostgresRepository) MassDeactivateUsers(ctx context.Context, teamName string, excludeUserIDs []string) (int, error) {
@@ -32,7 +33,7 @@ func (r *PostgresRepository) MassDeactivateUsers(ctx context.Context, teamName s
 	return int(rowsAffected), nil
 }
 
-func (r *PostgresRepository) GetOpenPRsWithReviewers(ctx context.Context, teamName string) ([]OpenPRInfo, error) {
+func (r *PostgresRepository) GetOpenPRsWithReviewers(ctx context.Context, teamName string) ([]models.OpenPRInfo, error) {
 	query := `
 		SELECT 
 			pr.pull_request_id,
@@ -55,9 +56,9 @@ func (r *PostgresRepository) GetOpenPRsWithReviewers(ctx context.Context, teamNa
 		}
 	}(rows)
 
-	var prs []OpenPRInfo
+	var prs []models.OpenPRInfo
 	for rows.Next() {
-		var pr OpenPRInfo
+		var pr models.OpenPRInfo
 		var reviewers []string
 
 		if err := rows.Scan(&pr.PRID, pq.Array(&reviewers), &pr.AuthorID); err != nil {
@@ -71,7 +72,7 @@ func (r *PostgresRepository) GetOpenPRsWithReviewers(ctx context.Context, teamNa
 	return prs, nil
 }
 
-func (r *PostgresRepository) UpdatePRReviewersBatch(ctx context.Context, updates []PRReviewersUpdate) error {
+func (r *PostgresRepository) UpdatePRReviewersBatch(ctx context.Context, updates []models.PRReviewersUpdate) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %v", err)

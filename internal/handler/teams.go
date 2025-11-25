@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"pr_task/internal/dto"
 	errors "pr_task/internal/error"
 	"pr_task/internal/model"
 )
@@ -19,7 +20,7 @@ import (
 // @Failure 500 {object} errors.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /team/add [post]
 func (h *Handler) AddTeam(c echo.Context) error {
-	var req models.Team
+	var req dto.TeamCreateRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, errors.NewErrorResponse("INVALID_REQUEST", "Invalid request body"))
 	}
@@ -28,7 +29,7 @@ func (h *Handler) AddTeam(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, errors.NewErrorResponse("INVALID_REQUEST", "Team name and members are required"))
 	}
 
-	team, err := h.Service.CreateTeam(c.Request().Context(), req)
+	team, err := h.Service.CreateTeam(c.Request().Context(), models.Team{TeamName: req.TeamName, Members: req.Members})
 	if err != nil {
 		if errors.Is(err, errors.ErrTeamExists) {
 			return c.JSON(http.StatusBadRequest, errors.NewErrorResponse(errors.CodeTeamExists, "team_name already exists"))
