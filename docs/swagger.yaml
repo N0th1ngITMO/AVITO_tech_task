@@ -61,6 +61,107 @@ definitions:
         example: "2025-11-25T16:30:45Z"
         type: string
     type: object
+  handler.MassDeactivationRequest:
+    properties:
+      exclude_user_ids:
+        example:
+        - u1
+        - u2
+        items:
+          type: string
+        type: array
+      team_name:
+        example: backend
+        type: string
+    type: object
+  handler.MassDeactivationResponse:
+    properties:
+      deactivated_users:
+        example: 5
+        type: integer
+      failed_prs:
+        example:
+        - pr-1001
+        items:
+          type: string
+        type: array
+      processing_time_ms:
+        example: 85
+        type: integer
+      updated_prs:
+        example: 3
+        type: integer
+    type: object
+  handler.OverallStatsResponse:
+    properties:
+      stats:
+        properties:
+          active_users:
+            example: 12
+            type: integer
+          avg_reviews_per_pr:
+            example: 2
+            type: number
+          merged_prs:
+            example: 3
+            type: integer
+          open_prs:
+            example: 7
+            type: integer
+          total_prs:
+            example: 10
+            type: integer
+          total_reviews:
+            example: 20
+            type: integer
+          total_users:
+            example: 15
+            type: integer
+        type: object
+    type: object
+  handler.PRReviewStatsResponse:
+    properties:
+      stats:
+        items:
+          properties:
+            author_id:
+              example: u1
+              type: string
+            pr_id:
+              example: pr-1001
+              type: string
+            pr_name:
+              example: Add search feature
+              type: string
+            reviewer_count:
+              example: 2
+              type: integer
+            status:
+              example: OPEN
+              type: string
+          type: object
+        type: array
+    type: object
+  handler.UserReviewStatsResponse:
+    properties:
+      stats:
+        items:
+          properties:
+            review_count:
+              example: 5
+              type: integer
+            team_name:
+              example: backend
+              type: string
+            user_id:
+              example: u1
+              type: string
+            username:
+              example: Alice
+              type: string
+          type: object
+        type: array
+    type: object
   models.PullRequest:
     properties:
       assigned_reviewers:
@@ -78,7 +179,6 @@ definitions:
       pull_request_name:
         type: string
       status:
-        description: OPEN, MERGED
         type: string
     type: object
   models.PullRequestShort:
@@ -90,7 +190,6 @@ definitions:
       pull_request_name:
         type: string
       status:
-        description: OPEN, MERGED
         type: string
     type: object
   models.ReassignResponse:
@@ -258,6 +357,63 @@ paths:
       summary: Переназначить конкретного ревьювера
       tags:
       - PullRequests
+  /stats/overall:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает общую статистику системы
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Общая статистика
+          schema:
+            $ref: '#/definitions/handler.OverallStatsResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      summary: Получить общую статистику
+      tags:
+      - Statistics
+  /stats/prs:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает количество ревьюверов по каждому PR
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статистика по PR
+          schema:
+            $ref: '#/definitions/handler.PRReviewStatsResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      summary: Получить статистику по PR
+      tags:
+      - Statistics
+  /stats/users:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает количество назначений по каждому пользователю
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статистика по пользователям
+          schema:
+            $ref: '#/definitions/handler.UserReviewStatsResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      summary: Получить статистику по ревьюверам
+      tags:
+      - Statistics
   /team/add:
     post:
       consumes:
@@ -353,6 +509,41 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       summary: Получить PR'ы, где пользователь назначен ревьювером
+      tags:
+      - Users
+  /users/massDeactivate:
+    post:
+      consumes:
+      - application/json
+      description: Деактивирует всех пользователей команды и безопасно переназначает
+        ревьюверов открытых PR
+      parameters:
+      - description: Данные для массовой деактивации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.MassDeactivationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Результат массовой деактивации
+          schema:
+            $ref: '#/definitions/handler.MassDeactivationResponse'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Команда не найдена
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      summary: Массовая деактивация пользователей команды
       tags:
       - Users
   /users/setIsActive:

@@ -205,6 +205,93 @@ const docTemplate = `{
                 }
             }
         },
+        "/stats/overall": {
+            "get": {
+                "description": "Возвращает общую статистику системы",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistics"
+                ],
+                "summary": "Получить общую статистику",
+                "responses": {
+                    "200": {
+                        "description": "Общая статистика",
+                        "schema": {
+                            "$ref": "#/definitions/handler.OverallStatsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/prs": {
+            "get": {
+                "description": "Возвращает количество ревьюверов по каждому PR",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistics"
+                ],
+                "summary": "Получить статистику по PR",
+                "responses": {
+                    "200": {
+                        "description": "Статистика по PR",
+                        "schema": {
+                            "$ref": "#/definitions/handler.PRReviewStatsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/users": {
+            "get": {
+                "description": "Возвращает количество назначений по каждому пользователю",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistics"
+                ],
+                "summary": "Получить статистику по ревьюверам",
+                "responses": {
+                    "200": {
+                        "description": "Статистика по пользователям",
+                        "schema": {
+                            "$ref": "#/definitions/handler.UserReviewStatsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/team/add": {
             "post": {
                 "description": "Создает команду и обновляет/создает пользователей",
@@ -339,6 +426,58 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Пользователь не найден",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/massDeactivate": {
+            "post": {
+                "description": "Деактивирует всех пользователей команды и безопасно переназначает ревьюверов открытых PR",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Массовая деактивация пользователей команды",
+                "parameters": [
+                    {
+                        "description": "Данные для массовой деактивации",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.MassDeactivationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Результат массовой деактивации",
+                        "schema": {
+                            "$ref": "#/definitions/handler.MassDeactivationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный запрос",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Команда не найдена",
                         "schema": {
                             "$ref": "#/definitions/errors.ErrorResponse"
                         }
@@ -499,6 +638,151 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.MassDeactivationRequest": {
+            "type": "object",
+            "properties": {
+                "exclude_user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "u1",
+                        "u2"
+                    ]
+                },
+                "team_name": {
+                    "type": "string",
+                    "example": "backend"
+                }
+            }
+        },
+        "handler.MassDeactivationResponse": {
+            "type": "object",
+            "properties": {
+                "deactivated_users": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "failed_prs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "pr-1001"
+                    ]
+                },
+                "processing_time_ms": {
+                    "type": "integer",
+                    "example": 85
+                },
+                "updated_prs": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "handler.OverallStatsResponse": {
+            "type": "object",
+            "properties": {
+                "stats": {
+                    "type": "object",
+                    "properties": {
+                        "active_users": {
+                            "type": "integer",
+                            "example": 12
+                        },
+                        "avg_reviews_per_pr": {
+                            "type": "number",
+                            "example": 2
+                        },
+                        "merged_prs": {
+                            "type": "integer",
+                            "example": 3
+                        },
+                        "open_prs": {
+                            "type": "integer",
+                            "example": 7
+                        },
+                        "total_prs": {
+                            "type": "integer",
+                            "example": 10
+                        },
+                        "total_reviews": {
+                            "type": "integer",
+                            "example": 20
+                        },
+                        "total_users": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    }
+                }
+            }
+        },
+        "handler.PRReviewStatsResponse": {
+            "type": "object",
+            "properties": {
+                "stats": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "author_id": {
+                                "type": "string",
+                                "example": "u1"
+                            },
+                            "pr_id": {
+                                "type": "string",
+                                "example": "pr-1001"
+                            },
+                            "pr_name": {
+                                "type": "string",
+                                "example": "Add search feature"
+                            },
+                            "reviewer_count": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "status": {
+                                "type": "string",
+                                "example": "OPEN"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "handler.UserReviewStatsResponse": {
+            "type": "object",
+            "properties": {
+                "stats": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "review_count": {
+                                "type": "integer",
+                                "example": 5
+                            },
+                            "team_name": {
+                                "type": "string",
+                                "example": "backend"
+                            },
+                            "user_id": {
+                                "type": "string",
+                                "example": "u1"
+                            },
+                            "username": {
+                                "type": "string",
+                                "example": "Alice"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "models.PullRequest": {
             "type": "object",
             "properties": {
@@ -524,7 +808,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "description": "OPEN, MERGED",
                     "type": "string"
                 }
             }
@@ -542,7 +825,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "description": "OPEN, MERGED",
                     "type": "string"
                 }
             }
@@ -599,13 +881,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "BearerAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
         }
     }
 }`

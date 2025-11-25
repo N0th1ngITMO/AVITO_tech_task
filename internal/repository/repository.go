@@ -22,6 +22,9 @@ type Repository interface {
 	UpdateUserActive(ctx context.Context, userID string, isActive bool) error
 	GetActiveTeamMembers(ctx context.Context, teamName string, excludeUserID string) ([]models.User, error)
 	GetRandomActiveTeamMember(ctx context.Context, teamName string, excludeUserIDs []string) (*models.User, error)
+	MassDeactivateUsers(ctx context.Context, teamName string, excludeUserIDs []string) (int, error)
+	GetOpenPRsWithReviewers(ctx context.Context, teamName string) ([]OpenPRInfo, error)
+	UpdatePRReviewersBatch(ctx context.Context, updates []PRReviewersUpdate) error
 
 	CreatePR(ctx context.Context, pr models.PullRequest) error
 	GetPR(ctx context.Context, prID string) (*models.PullRequest, error)
@@ -29,6 +32,10 @@ type Repository interface {
 	UpdatePRStatus(ctx context.Context, prID string, status string, mergedAt *time.Time) error
 	UpdatePRReviewers(ctx context.Context, prID string, reviewers []string) error
 	GetPRsByReviewer(ctx context.Context, userID string) ([]models.PullRequest, error)
+
+	GetReviewStatsByUser(ctx context.Context) ([]UserReviewStats, error)
+	GetReviewStatsByPR(ctx context.Context) ([]PRReviewStats, error)
+	GetOverallStats(ctx context.Context) (*OverallStats, error)
 }
 
 type PostgresRepository struct {
